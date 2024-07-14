@@ -5,7 +5,7 @@
 //   Author:                                                                                      //
 //   Marcel Hasler <mahasler@gmail.com>                                                           //
 //                                                                                                //
-//   Copyright (c) 2022 - 2023                                                                    //
+//   Copyright (c) 2022 - 2024                                                                    //
 //   Bonn-Rhein-Sieg University of Applied Sciences                                               //
 //                                                                                                //
 //   Redistribution and use in source and binary forms, with or without modification,             //
@@ -81,6 +81,7 @@ public:
     StaticString(StaticString&& other) noexcept;
     StaticString(const char* string);
     StaticString(const char* string, size_t first, size_t last);
+    StaticString(std::span<const char> string);
     ~StaticString() noexcept = default;
 
     auto format(const char* format, ...) -> StaticString&;
@@ -236,11 +237,27 @@ StaticString<N>::StaticString(const char* string, size_t first, size_t last)
 // ---------------------------------------------------------------------------------------------- //
 
 template <size_t N>
+StaticString<N>::StaticString(std::span<const char> string)
+{
+    for (char c : string)
+    {
+        if (c == '\0' || m_size >= N)
+            break;
+
+        m_data[m_size++] = c;
+    }
+
+    m_data[m_size] = '\0';
+}
+
+// ---------------------------------------------------------------------------------------------- //
+
+template <size_t N>
 auto StaticString<N>::format(const char* format, ...) -> StaticString&
 {
-    va_list args;
+    std::va_list args;
     va_start(args, format);
-    vsnprintf(m_data.data(), N, format, args);
+    std::vsnprintf(m_data.data(), N + 1, format, args);
     va_end(args);
 
     m_size = std::strlen(m_data.data());
@@ -660,14 +677,14 @@ void StaticString<N>::pop_back()
 template <size_t N>
 auto StaticString<N>::makeFormat(const char* format, ...) -> StaticString
 {
-    char buffer[N + 1];
+    std::array<char, N + 1> buffer;
 
-    va_list args;
+    std::va_list args;
     va_start(args, format);
-    vsnprintf(buffer, N, format, args);
+    std::vsnprintf(buffer.data(), buffer.size(), format, args);
     va_end(args);
 
-    return StaticString(buffer);
+    return StaticString(buffer.data());
 }
 
 // ---------------------------------------------------------------------------------------------- //

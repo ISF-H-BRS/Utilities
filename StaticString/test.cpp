@@ -5,7 +5,7 @@
 //   Author:                                                                                      //
 //   Marcel Hasler <mahasler@gmail.com>                                                           //
 //                                                                                                //
-//   Copyright (c) 2022 - 2023                                                                    //
+//   Copyright (c) 2022 - 2024                                                                    //
 //   Bonn-Rhein-Sieg University of Applied Sciences                                               //
 //                                                                                                //
 //   Redistribution and use in source and binary forms, with or without modification,             //
@@ -40,12 +40,10 @@
 
 // ---------------------------------------------------------------------------------------------- //
 
-using String = StaticString<64>;
-
-// ---------------------------------------------------------------------------------------------- //
-
 void testTokensKeep()
 {
+    using String = StaticString<64>;
+
     static constexpr auto TokenBehavior = String::TokenBehavior::KeepEmptyTokens;
     static constexpr char TokenSeparator = ';';
 
@@ -104,6 +102,8 @@ void testTokensKeep()
 
 void testTokensSkip()
 {
+    using String = StaticString<64>;
+
     static constexpr auto TokenBehavior = String::TokenBehavior::SkipEmptyTokens;
     static constexpr char TokenSeparator = ';';
 
@@ -145,10 +145,41 @@ void testTokensSkip()
 
 // ---------------------------------------------------------------------------------------------- //
 
+void testFormat()
+{
+    using String = StaticString<16>;
+
+    String test1;
+    test1.format("%s%s", "Hello world", "Hello world");
+    assert(test1 == "Hello worldHello");
+
+    auto test2 = String::makeFormat("%s%s", "Hello world", "Hello world");
+    assert(test2 == "Hello worldHello");
+}
+
+// ---------------------------------------------------------------------------------------------- //
+
+void testSpan()
+{
+    using String = StaticString<16>;
+
+    std::array string1 = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', '!' };
+    String test1(string1);
+    assert(test1 == "Hello world!");
+
+    const char string2[] = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', '!' };
+    String test2(string2);
+    assert(test2 == "Hello world!");
+}
+
+// ---------------------------------------------------------------------------------------------- //
+
 auto main() -> int
 {
     testTokensKeep();
     testTokensSkip();
+    testFormat();
+    testSpan();
 
     std::cout << "All tests passed." << std::endl;
     return 0;
